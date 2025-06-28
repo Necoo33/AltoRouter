@@ -99,6 +99,61 @@ class AltoRouter
     }
 
     /**
+    * Load environment variables from .env files
+    * Call this method manually to load environment variables when needed
+    * 
+    * @return bool Returns true if any environment files were loaded, false otherwise
+    */
+    public function loadEnv(): bool
+    {
+        $loaded = false;
+        $projectRoot;
+
+        if (!empty($this->basePath)) {
+            $projectRoot = $_SERVER['DOCUMENT_ROOT'];;
+        } else {
+            $projectRoot = dirname(__DIR__);
+        }
+    
+        $envFile = $projectRoot . '/.env';
+        if (file_exists($envFile)) {
+            $this->loadEnvFile($envFile);
+            $loaded = true;
+        }
+        
+        // find other .env* files
+        $envFiles = glob($projectRoot . '/.env*');
+        if (!empty($envFiles)) {
+            foreach ($envFiles as $file) {
+                if ($file !== $envFile) { // Skip .env as it's already loaded
+                    $this->loadEnvFile($file);
+                    $loaded = true;
+                }
+            }
+        }
+
+        // find *.env files
+        $envFiles = glob($projectRoot . '/*.env');
+        if (!empty($envFiles)) {
+            foreach ($envFiles as $file) {
+                $this->loadEnvFile($file);
+                $loaded = true;
+            }
+        }
+
+        // find *.env* files
+        $envFiles = glob($projectRoot . '/*.env*');
+        if (!empty($envFiles)) {
+            foreach ($envFiles as $file) {
+                $this->loadEnvFile($file);
+                $loaded = true;
+            }
+        }
+        
+        return $loaded;
+    }
+
+    /**
      * Add named match types. It uses array_merge so keys can be overwritten.
      *
      * @param array $matchTypes The key is the name and the value is the regex.
@@ -296,5 +351,41 @@ class AltoRouter
             }
         }
         return "`^$route$`u";
+    }
+
+    /**
+    * Load environment variables from file
+    * 
+    * @param string $file Path to the environment file
+    * @throws Exception
+    */
+    protected function loadEnvFile($file) {
+        if (!file_exists($file)) {
+            throw new Exception("File cannot found: $file");
+        }
+    
+        $lines = file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($lines as $line) {
+            // Skip comments
+            if (strpos(trim($line), '#') === 0) {
+                continue;
+            }
+            
+            // Skip lines without =
+            if (strpos($line, '=') === false) {
+                continue;
+            }
+    
+            list($name, $value) = explode('=', $line, 2);
+            $name = trim($name);
+            $value = trim($value);
+    
+            // Remove quotes from value
+            $value = str_replace(['"', "'"], '', $value);
+    
+            // Set environment variable
+            putenv(sprintf('%s=%s', $name, $value));
+            $_ENV[$name] = $value;
+        }
     }
 }

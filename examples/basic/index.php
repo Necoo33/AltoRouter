@@ -12,6 +12,7 @@ if (file_exists($_SERVER['SCRIPT_FILENAME']) && pathinfo($_SERVER['SCRIPT_FILENA
 
 $router = new AltoRouter();
 $router->setBasePath('/AltoRouter/examples/basic');
+$router->loadEnv();
 $router->map('GET|POST', '/', 'home#index', 'home');
 $router->map('GET', '/users/', ['c' => 'UserController', 'a' => 'ListAction']);
 $router->map('GET', '/users/[i:id]', 'users#show', 'users_show');
@@ -27,6 +28,7 @@ $match = $router->match();
     Target: <?php var_dump($match['target']); ?>
     Params: <?php var_dump($match['params']); ?>
     Name:   <?php var_dump($match['name']); ?>
+    Envs: <?php var_dump($_ENV); ?>
 </pre>
 
 <h3>Try these requests: </h3>
