@@ -107,13 +107,7 @@ class AltoRouter
     public function loadEnv(): bool
     {
         $loaded = false;
-        $projectRoot;
-
-        if (!empty($this->basePath)) {
-            $projectRoot = $_SERVER['DOCUMENT_ROOT'];;
-        } else {
-            $projectRoot = dirname(__DIR__);
-        }
+        $projectRoot = $_SERVER['DOCUMENT_ROOT'];
     
         $envFile = $projectRoot . '/.env';
         if (file_exists($envFile)) {
